@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Good + - 坐姿偵測畫面</title>
+	<style>
+		.footer {
+			position: fixed;
+			left: 0;
+			bottom: 0;
+			width: 100%;
+			color: black;
+		}
+
+		.footer-text {
+			max-width: 600px;
+			text-align: center;
+			margin: auto;
+		}
+
+		@media only screen and (max-width: 600px) {
+			.footer-text, .dg {
+				display: none;
+			}
+		}
+	</style>
+	<link rel="Shortcut Icon" type="image/Icon" href="dist/images/logo.jpg" />
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<!--<body background="dist\images\backgroundCamera.png">-->
+<body bgcolor="orange">
+	<div id="info" style='display:none'>
+	</div>
+	<div id="loading">
+		Loading the model...
+	</div>
+	<div id='main' style='display:none'>
+		<video id="video" playsinline style=" -moz-transform: scaleX(-1);
+			-o-transform: scaleX(-1);
+			-webkit-transform: scaleX(-1);
+			transform: scaleX(-1);
+			display: none;
+			"></video>
+		<a href="index.html"><img src="dist/images/background.png" width=597></a>
+		<canvas id="output" />
+	</div>
+
+	<!--<br />動態窗格<br />-->
+	<textarea id="myDiv01" rows="20" cols="80"></textarea>
+	<!--<br />資料用窗格<br />-->
+	<textarea id="myDiv02" rows="20" cols="80"></textarea>
+	<textarea id="myDiv03" rows="1" cols="4"></textarea>
+	<p></p>
+	<p></p>
+	<p></p>
+	<br> PoseNet runs with either a <strong>single-pose</strong> or <strong>multi-pose</strong> detection algorithm. The single person pose detector is faster and more accurate but requires only one subject present in the image.
+	<br>
+	<br> The <strong>output stride</strong> and <strong>image scale factor</strong> have the largest effects on accuracy/speed. A <i>higher</i> output stride results in lower accuracy but higher speed. A <i>higher</i> image scale factor results in higher accuracy but lower speed.
+	<p></p>
+	<p></p>
+	<p></p>
+	<script src="camera.js"></script>
+	<script>
+		//每五秒重複執行一次
+		//setInterval(函數不加括號, 5000(毫秒，秒數*1000));
+		//設定等待七秒是為了即使沒有會漏掉第一次，可是如此可以避免產生空資料
+		//等待時長需要考慮到每台電腦的效能
+		setTimeout(function () { setInterval(start, 4000); }, 3000);
+		//---------------------------------------------------------------------------------------------------------------
+		function start() {
+
+			//取得當下時間，用於檔案命名
+			var today = new Date();
+
+			//取得Posenet的點輸出(每五秒更新一次)
+			const value = document.getElementById('myDiv02').value;
+			//將myDiv02的textarea中的值取出
+			//document.getElementById('myDiv02').value = value;
+			const times = document.getElementById('myDiv03').value;
+
+			//檔案名稱
+			const fileName = "Posenet_Points-" + times/* + today.getMinutes() + today.getSeconds() + today.getMilliseconds()*/ + ".json";
+
+			//執行輸出檔案函數
+			//console.log('export');
+			ExportFile(fileName, value);
+			//console.log('export success');
+		}
+		//---------------------------------------------------------------------------------------------------------------
+		function ExportFile(_fileName, _text) {
+			//現行版本的html不支援直接下載，所以需要透過blob這個虛擬的主機方式
+			//進行一個平台的轉介
+			//https://segmentfault.com/a/1190000011563430
+			var textFileAsBlob = new Blob([_text], { type: 'text/plain' });
+			//創建元素節點，並為其取名
+			//如果 name 參數中含有不合法的字符
+			//該方法將抛出代碼為 INVALID_CHARACTER_ERR 的 DOMException 異常。
+			var downloadLink = document.createElement("a");
+			//取檔名
+			downloadLink.download = _fileName;
+			//innerHTML 屬性設置或返回表格行的開始和結束標籤之間的HTML。
+			downloadLink.innerHTML = "Download File";
+			//判斷電腦系統的。
+			//URL對象是硬盤指向文件的一个路徑，
+			//如果我們做文件上傳的時候，
+			//想在沒有上傳服務器端的情况下看到上傳圖片的效果圖的時候
+			//就可是以通過var url = window.URL.createObjectURL(obj.files[0]);
+			//獲得一个http格式的url路徑，這個時候就可以設置到 < img > 中顯示了。
+			//window.webkitURL和window.URL是一樣的，window.URL標準定義，
+			//window.webkitURL是webkit內核的實現，
+			//一般手機上就是使用這個，還有火狐等瀏覽器的實現。
+			if (window.webkitURL != null) {
+				// Chrome allows the link to be clicked
+				// without actually adding it to the DOM.
+				//Chrome允許點擊鏈接，而無需將其實際添加到DOM。
+				downloadLink.href = window.webkitURL.createObjectURL(textFileAsBlob);
+			} else {
+				// Firefox requires the link to be added to the DOM
+				// before it can be clicked.
+				//Firefox要求在點擊之前將鏈接添加到DOM。
+				downloadLink.href = window.URL.createObjectURL(textFileAsBlob);
+				downloadLink.onclick = destroyClickedElement;
+				downloadLink.style.display = "none";
+				document.body.appendChild(downloadLink);
+			}
+			downloadLink.click();
+		}
+		//---------------------------------------------------------------------------------------------------------------
+		//用於當瀏覽器使用firefox時，需要進行的收尾函數
+		function destroyClickedElement(event) {
+			//將方才臨時產生的鏈結刪除
+			document.body.removeChild(event.target);
+		}
+	</script>
+</body>
+</html>
