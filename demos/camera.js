@@ -268,8 +268,9 @@ function detectPoseInRealTime(video, net) {
   canvas.width = videoWidth;
   canvas.height = videoHeight;
 
-  let count = 0;
-  var team = new Array(10);
+  let windowNextUpdateIndex = 0;
+  let windowForMdeianSize = 10;
+  var windowForMedian = new Array(windowForMdeianSize);
 
   //用以比較是否經過五秒(過去時間)
   var d = new Date();
@@ -323,7 +324,8 @@ function detectPoseInRealTime(video, net) {
           guiState.multiPoseDetection.nmsRadius);
 
         var data = await JSON.stringify(poses, null, 3);
-        document.getElementById('myDiv01').value = data;
+        // Temporarily disable it for eye detection.
+        //document.getElementById('myDiv02').value = data;
 
         //用以比較是否經過五秒(當下時間)
         var d1 = new Date();
@@ -371,6 +373,8 @@ function detectPoseInRealTime(video, net) {
     //對於在圖像中檢測到的每個姿勢（即人），循環通過姿勢
     //如果超過一定的信心，則繪製生成的骨架和關鍵點
     //分數
+
+    var numberOfDectection = 0;
     poses.forEach(({ score, keypoints }) => {
       if (score >= minPoseConfidence) {
         if (guiState.output.showPoints) {
@@ -384,11 +388,44 @@ function detectPoseInRealTime(video, net) {
         }
       }
 
+      // There are unstability in PoseNet detection. We use a window to store
+      // a size of N previous detection. Sort in that duration and get the median
+      // to ensure we rule out the extreme values that might just be accidental.
+      numberOfDectection++;
+      if (numberOfDectection == 1) {
+        // We ignore all the cases for multiple pose detected. Only first pose will be stored in array.
+        windowForMedian[windowNextUpdateIndex] = keypoints;
+        //console.log(windowForMedian);
+
+        if (windowNextUpdateIndex == windowForMdeianSize) {
+          // Let's pick the median we are concerned about.
+
+          // Getting the media of keypoints[1]
+          var arrayToSort = new Array(windowForMdeianSize);
+          for (let i=0; i<windowForMdeianSize; ++i)
+            arrayToSort[i] = windowForMedian[i][1].position.x;
+          arrayToSort = arrayToSort.sort();
+          console.log(arrayToSort);
+          let median = arrayToSort[windowForMdeianSize/2];
+          document.getElementById('myDiv01').value = median;
+          
+
+          windowForMedian.shift();
+        } else {
+          windowNextUpdateIndex++;
+        }
+      }
+
+
+
+
+       /*
       //取得眼睛的點
       let eyes_direction = {
         "x": keypoints[1].position.x - keypoints[2].position.x,
         "y": keypoints[1].position.y - keypoints[2].position.y,
       };
+      */
 
       // Comparing only if we have previous_direction.
       var detetcted = 1;
@@ -402,7 +439,11 @@ function detectPoseInRealTime(video, net) {
         previous_direction = eyes_direction;//置換previous值
       }
       */
+      
       //算斜率
+      //document.getElementById('myDiv01').value = "x = " + eyes_direction["x"] + " | " + "y = " + eyes_direction["y"];
+
+/*
       if(previous_direction!=null){
         if(Math.abs((previous_direction.y-eyes_direction.y)/(previous_direction.x-eyes_direction.x))>0.8){
           document.getElementById('detection').innerHTML = "Falled";
@@ -410,7 +451,9 @@ function detectPoseInRealTime(video, net) {
         }
         previous_direction = eyes_direction;//置換previous值
       }
+      */
 
+      /*
       //make posenet be more accurate--start
       var team_sort = new Array(10);
       var eye;
@@ -420,13 +463,13 @@ function detectPoseInRealTime(video, net) {
           //console.log(count);
         } else {
           //method 1
-          /*
-          for (let i = 0; i < 9; ++i) {
-            team_sort[i] = team[i];
-            team[i] = team[i + 1];
-          }
-          team_sort[9] = team[9];
-          */
+          
+          //for (let i = 0; i < 9; ++i) {
+          //  team_sort[i] = team[i];
+          //  team[i] = team[i + 1];
+          //}
+          //team_sort[9] = team[9];
+          
           team[9] = eyes_direction.y;
 
           //method 2
@@ -439,6 +482,8 @@ function detectPoseInRealTime(video, net) {
       }
       count++;
       //make posenet be more accurate--end
+
+      */
     });
 
     // End monitoring code for frames per second
