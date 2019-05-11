@@ -52,6 +52,13 @@ function getStableKeyPoints(index, direction) {
   return medianToReturn;
 }
 
+function calculateTriangleArea(a, b, c, d) {
+  // Reference: http://highscope.ch.ntu.edu.tw/wordpress/wp-content/uploads/2015/11/66359_p1.png
+  // Reference: http://highscope.ch.ntu.edu.tw/wordpress/?p=66359  (ad-bc)
+  // Reference: https://blog.xuite.net/wang620628/twblog/126094614 
+  return Math.abs(a*d - b*c);
+}
+
 
 //判斷是否為Android - function 1
 function isAndroid() {
@@ -426,20 +433,39 @@ function detectPoseInRealTime(video, net) {
       }
 
       
-      //取得眼睛的點
+      var textToDisplayForDebug = "";
+      // 取得眼睛的點
       if (getStableKeyPoints(1, "x") == null) {
-        document.getElementById('myDiv01').value = "Frames to stable is not ready yet !";
+        textToDisplayForDebug = "Frames is not accmulated enough to do median stable selection";
       } else {
         let eyesDirection = {
           "x": getStableKeyPoints(1, "x") - getStableKeyPoints(2, "x"),
           "y": getStableKeyPoints(1, "y") - getStableKeyPoints(2, "y"),
         }
-        //算斜率
+        // 算斜率
         // Increase the x a bit to avoid the chance of divided by 0
         eyesDirection.x += 0.005
         let slopeRate = eyesDirection.y / eyesDirection.x
-        document.getElementById('myDiv01').value = "Current Slope" + slopeRate;
+        textToDisplayForDebug += "\nCurrent Slope = " + slopeRate;
       }
+
+      // 取得nose[0], leftEye[1], rightEye[2] calculate the area to judge if too close to camera.
+      // leftEar[3], rightEar[4], leftShoulder[5], rightShoulder[6] could be used, but it is less
+      // stable (you might not always detected the ears / shoulder)
+      if (getStableKeyPoints(0, "x") == null) {
+        textToDisplayForDebug = "Frames is not accmulated enough to do median stable selection";
+      } else {
+        let area = calculateTriangleArea(
+          getStableKeyPoints(0, "x") - getStableKeyPoints(1, "x"),
+          getStableKeyPoints(0, "y") - getStableKeyPoints(1, "y"),
+          getStableKeyPoints(0, "x") - getStableKeyPoints(2, "x"),
+          getStableKeyPoints(0, "y") - getStableKeyPoints(2, "y"),
+          );
+          textToDisplayForDebug += "\nArea = " + area;
+      }
+
+      document.getElementById('myDiv01').value = textToDisplayForDebug;
+
 
     });
 
