@@ -25,6 +25,7 @@ import { drawBoundingBox, drawKeypoints, drawSkeleton } from './demo_util';
 const videoWidth = 600;
 const videoHeight = 500;
 const stats = new Stats();
+let previous_direction = null;//加了一個區域變數 後面用到
 
 //判斷是否為Android - function 1
 function isAndroid() {
@@ -259,12 +260,16 @@ function detectPoseInRealTime(video, net) {
   const canvas = document.getElementById('output');
   const ctx = canvas.getContext('2d');
 
+
   // since images are being fed from a webcam
   //因為圖像是從網絡攝像頭饋送的
   const flipHorizontal = true;
 
   canvas.width = videoWidth;
   canvas.height = videoHeight;
+
+  let count = 0;
+  var team = new Array(10);
 
   //用以比較是否經過五秒(過去時間)
   var d = new Date();
@@ -378,6 +383,62 @@ function detectPoseInRealTime(video, net) {
           drawBoundingBox(keypoints, ctx);
         }
       }
+
+      //取得眼睛的點
+      let eyes_direction = {
+        "x": keypoints[1].position.x - keypoints[2].position.x,
+        "y": keypoints[1].position.y - keypoints[2].position.y,
+      };
+
+      // Comparing only if we have previous_direction.
+      var detetcted = 1;
+      /*
+      if (previous_direction != null) {
+        // Comparing to previous one.
+        if (Math.abs(previous_direction.y) < 50 && Math.abs(eyes_direction.y) > 50) {
+          // Original the eyes haves about the same y, now trun into vertical ?
+          document.getElementById('detection').innerHTML = "Falled";
+        }
+        previous_direction = eyes_direction;//置換previous值
+      }
+      */
+      //算斜率
+      if(previous_direction!=null){
+        if(Math.abs((previous_direction.y-eyes_direction.y)/(previous_direction.x-eyes_direction.x))>0.8){
+          document.getElementById('detection').innerHTML = "Falled";
+          log.d("ttt","fail");
+        }
+        previous_direction = eyes_direction;//置換previous值
+      }
+
+      //make posenet be more accurate--start
+      var team_sort = new Array(10);
+      var eye;
+      if (eyes_direction != null) {
+        if (count < 9) {
+          team[count] = eyes_direction.y;
+          //console.log(count);
+        } else {
+          //method 1
+          /*
+          for (let i = 0; i < 9; ++i) {
+            team_sort[i] = team[i];
+            team[i] = team[i + 1];
+          }
+          team_sort[9] = team[9];
+          */
+          team[9] = eyes_direction.y;
+
+          //method 2
+          Object.assign(team_sort, team);
+          team.shift();
+          //method 2--end
+          team_sort = team_sort.sort();
+          eye = team_sort[4];
+        }
+      }
+      count++;
+      //make posenet be more accurate--end
     });
 
     // End monitoring code for frames per second
