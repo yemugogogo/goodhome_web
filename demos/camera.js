@@ -25,7 +25,9 @@ import { drawBoundingBox, drawKeypoints, drawSkeleton } from './demo_util';
 const videoWidth = 600;
 const videoHeight = 500;
 const stats = new Stats();
-let previous_direction = null;//加了一個區域變數 後面用到
+let previous_direction = null;
+//database
+var database = firebase.database();
 
 let windowNextUpdateIndex = 0;
 let windowForMdeianSize = 10;
@@ -462,6 +464,10 @@ function detectPoseInRealTime(video, net) {
           getStableKeyPoints(0, "y") - getStableKeyPoints(2, "y"),
           );
           textToDisplayForDebug += "\nArea = " + area;
+
+          firebase.database().ref('test/').push({
+            area:area,
+          });
       }
 
       document.getElementById('myDiv01').value = textToDisplayForDebug;
@@ -507,6 +513,9 @@ export async function bindPage() {
   setupFPS();
   detectPoseInRealTime(video, net);
 }
+
+//Add data into Firebase
+
 
 navigator.getUserMedia = navigator.getUserMedia ||
   navigator.webkitGetUserMedia || navigator.mozGetUserMedia;

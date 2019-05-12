@@ -28,6 +28,10 @@
 </head>
 <!--<body background="dist\images\backgroundCamera.png">-->
 <body bgcolor="orange">
+	<div>
+		<button id="sign-in-button" class="mdl-button--raised mdl-button mdl-js-button mdl-js-ripple-effect"><i class="material-icons">account_circle</i> Sign in with Google</button>
+	</div>
+
 	<div id="info" style='display:none'>
 	</div>
 	<div id="loading">
@@ -61,6 +65,46 @@
 	<p></p>
 	<p></p>
 	<p></p>
+
+<!-- Import and configure the Firebase SDK -->
+<!-- These scripts are made available when the app is served or deployed on Firebase Hosting -->
+<!-- If you do not serve/host your project using Firebase Hosting see https://firebase.google.com/docs/web/setup -->
+<!-- 
+Firebase App is always required and must be first -->
+
+	<!-- The core Firebase JS SDK is always required and must be listed first -->
+	<script src="https://www.gstatic.com/firebasejs/6.0.2/firebase-app.js"></script>
+
+	<!-- Add additional services that you want to use -->
+	<script src="https://www.gstatic.com/firebasejs/6.0.2/firebase-auth.js"></script>
+	<script src="https://www.gstatic.com/firebasejs/6.0.2/firebase-database.js"></script>
+	<script src="https://www.gstatic.com/firebasejs/6.0.2/firebase-firestore.js"></script>
+	<script src="https://www.gstatic.com/firebasejs/6.0.2/firebase-messaging.js"></script>
+	<script src="https://www.gstatic.com/firebasejs/6.0.2/firebase-functions.js"></script>
+
+	<script src="https://www.gstatic.com/firebasejs/6.0.2/firebase.js"></script>
+
+
+	<script>
+			// Your web app's Firebase configuration
+			var firebaseConfig = {
+			  apiKey: "AIzaSyAjUqKsU30cY_bvES9fpt3oxtKBvpJoIHY",
+			  authDomain: "wellsitting-ef0e5.firebaseapp.com",
+			  databaseURL: "https://wellsitting-ef0e5.firebaseio.com",
+			  projectId: "wellsitting-ef0e5",
+			  storageBucket: "wellsitting-ef0e5.appspot.com",
+			  messagingSenderId: "592790184519",
+			  appId: "1:592790184519:web:ea6d5e18f0fd9112"
+			};
+			// Initialize Firebase
+			firebase.initializeApp(firebaseConfig);
+		  </script>
+<script src="scripts/main.js"></script>
+<!-- Firebase ready -->
+
+
+
+
 	<script src="camera.js"></script>
 	<!--
 	<script>
@@ -136,5 +180,7 @@
 		}
 	</script>
 	-->
+	
+	
 </body>
 </html>
