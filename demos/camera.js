@@ -28,6 +28,8 @@ const stats = new Stats();
 let previous_direction = null;
 //database
 var database = firebase.database();
+//check
+let count_sum=0;
 
 let windowNextUpdateIndex = 0;
 let windowForMdeianSize = 10;
@@ -449,6 +451,17 @@ function detectPoseInRealTime(video, net) {
         eyesDirection.x += 0.005
         let slopeRate = eyesDirection.y / eyesDirection.x
         textToDisplayForDebug += "\nCurrent Slope = " + slopeRate;
+
+        if(Math.abs(slopeRate)>0.25){
+          count_sum++;
+        }
+
+        if(count_sum==100){
+          firebase.database().ref('test/').push({
+            signal:"Falled",
+          });
+          count_sum=0;
+        }
       }
 
       // 取得nose[0], leftEye[1], rightEye[2] calculate the area to judge if too close to camera.
@@ -465,10 +478,15 @@ function detectPoseInRealTime(video, net) {
           );
           textToDisplayForDebug += "\nArea = " + area;
 
-          firebase.database().ref('test/').push({
-            area:area,
-          });
+          
+
+          
       }
+
+
+      //Falled Signal
+      
+      textToDisplayForDebug += "\nFalled Count = " + count_sum;
 
       document.getElementById('myDiv01').value = textToDisplayForDebug;
 
