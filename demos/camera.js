@@ -450,17 +450,18 @@ function detectPoseInRealTime(video, net) {
         // Increase the x a bit to avoid the chance of divided by 0
         eyesDirection.x += 0.005
         let slopeRate = eyesDirection.y / eyesDirection.x
+        document.getElementById('slope').value = slopeRate;
         textToDisplayForDebug += "\nCurrent Slope = " + slopeRate;
 
         if(Math.abs(slopeRate)>0.25){
           count_sum++;
         }
 
-        if(count_sum==100){
-          firebase.database().ref('test/').push({
-            signal:"Falled",
-          });
-          count_sum=0;
+        if(count_sum > 100){
+          if (document.getElementById('firebase_done').value == "Done") {
+            document.getElementById('firebase_done').value = "";
+            count_sum = 0
+          }
         }
       }
 
@@ -476,16 +477,12 @@ function detectPoseInRealTime(video, net) {
           getStableKeyPoints(0, "x") - getStableKeyPoints(2, "x"),
           getStableKeyPoints(0, "y") - getStableKeyPoints(2, "y"),
           );
+          document.getElementById('area').value = area;
           textToDisplayForDebug += "\nArea = " + area;
-
-          
-
-          
       }
 
-
       //Falled Signal
-      
+      document.getElementById('count_sum').value = count_sum;
       textToDisplayForDebug += "\nFalled Count = " + count_sum;
 
       document.getElementById('myDiv01').value = textToDisplayForDebug;
